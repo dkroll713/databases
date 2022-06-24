@@ -25,11 +25,11 @@ var FormView = {
       _.extend(message, data[0]);
       Messages.add(message, MessagesView.render);
     });
-      },
+  },
 
   setStatus: function(active) {
     var status = active ? 'true' : null;
-    FormView.$form.find('input[type=submit]').attr('disabled', status);
+    FormView.$form.find('input[type=submit]');
   }
 
 };
