@@ -14,16 +14,18 @@ var FormView = {
     // Stop the browser from submitting the form
     event.preventDefault();
 
+    var url = window.location.href;
+    console.log('url:', url);
 
     var message = {
       username: App.username,
-      text: FormView.$form.find('#message').val(),
+      messageText: FormView.$form.find('#message').val(),
       roomname: Rooms.selected || 'lobby'
     };
 
     Parse.create(message, (data) => {
       _.extend(message, data[0]);
-      Messages.add(message, MessagesView.render);
+      // Messages.add(message, MessagesView.render);
     });
   },
 

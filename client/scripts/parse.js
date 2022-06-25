@@ -4,7 +4,7 @@
 
 var Parse = {
 
-  server: `localhost:3000/messages`,
+  server: 'http://localhost:3000/messages',
 
   create: function(message, successCB, errorCB = null) {
 

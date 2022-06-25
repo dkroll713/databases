@@ -1,12 +1,14 @@
 var db = require('../db');
 const mysql = require('mysql2');
 const connection = require('../db/index.js');
+const userFunc = require('../models/users');
 
 module.exports = {
 
   nextId: 0,
   userId: 0,
   roomId: 0,
+  messages: [],
 
   getAll: function () {
 
@@ -18,7 +20,7 @@ module.exports = {
       console.log(connection.connection.query);
     }
     connection.connection.query( // selects all messages in the database, showing user, room, & text
-      'select u.username, r.room, m.messageText from messages m inner join usernames u on u.id = m.id_usernames inner join rooms r on r.id = m.id_rooms;'
+      'select m.id, u.username, r.room, m.messageText from messages m inner join usernames u on u.id = m.id_usernames inner join rooms r on r.id = m.id_rooms;'
       , function(err, results, fields) {
         if (err) {
           console.error('error', err);
@@ -27,8 +29,11 @@ module.exports = {
         }
         console.log('results:', results);
         // console.log('fields:', fields);
-      });
+        module.exports.messages = results;
+        console.log('messages:', module.exports.messages);
 
+      });
+    return module.exports.messages;
   }, // a function which produces all the messages
   create: function (username, message, roomname) {
     var userId = 0;
@@ -50,44 +55,93 @@ module.exports = {
     //     // console.log('fields:', fields);
     //   });
 
+
     connection.connection.query(
       'select u.id from usernames u where u.username=?', username, (err, results, fields) => {
         if (err) {
           throw err;
         }
-        console.log('username id:', results, results[0].id);
-        module.exports.userId = results[0].id;
+        if (!results[0]) {
+          console.log('broken table');
+          connection.connection.query(
+            'insert into usernames(username) values(?)', username, (err, results, fields) => {
+              if (err) {
+                throw err;
+              } else {
+                connection.connection.query(
+                  'select u.id from usernames u where u.username=?', username, (err, results, fields) => {
+                    if (err) {
+                      throw err;
+                    } else {
+                      module.exports.userId = results[0].id;
+                      connection.connection.query(
+                        'select r.id from rooms r where r.room=?', roomname, (err, results, fields) => {
+                          if (err) {
+                            throw err;
+                          }
+                          console.log('room id:', results[0].id);
+                          module.exports.roomId = results[0].id;
+                          console.log('\n\nsecond checkusername id:', module.exports.userId, 'room id:', module.exports.roomId);
 
-        // callback for rooms
-        connection.connection.query(
-          'select r.id from rooms r where r.room=?', roomname, (err, results, fields) => {
-            if (err) {
-              throw err;
-            }
-            console.log('room id:', results[0].id);
-            module.exports.roomId = results[0].id;
-            console.log('\n\nsecond checkusername id:', module.exports.userId, 'room id:', module.exports.roomId);
+                          // callback for message insertion
+                          connection.connection.query(
+                            'insert into messages(id_usernames, id_rooms, messageText) values(?, 1, ?)', [module.exports.userId, message], (err, results, fields) => {
+                              if (err) {
+                                console.log('insert check 1:', module.exports.userId, module.exports.roomId);
 
-            // callback for message insertion
-            connection.connection.query(
-              'insert into messages(id_usernames, id_rooms, messageText) values(?, 1, ?)', [module.exports.userId, message], (err, results, fields) => {
-                if (err) {
-                  console.log('insert check 1:', module.exports.userId, module.exports.roomId);
+                                throw err;
+                              } else {
+                                console.log('insert check 2:', module.exports.userId, module.exports.roomId);
+                                console.log(results);
 
-                  throw err;
-                } else {
-                  console.log('insert check 2:', module.exports.userId, module.exports.roomId);
-                  console.log(results);
-                }
+                              }
+                            }
+                          );
+
+                        }
+                      );
+                    }
+                  }
+                );
               }
-            );
+            }
+          );
+        } else {
+          console.log('username id:', results, results[0].id);
+          module.exports.userId = results[0].id;
 
-          }
-        );
+          // callback for rooms
+          connection.connection.query(
+            'select r.id from rooms r where r.room=?', roomname, (err, results, fields) => {
+              if (err) {
+                throw err;
+              }
+              console.log('room id:', results[0].id);
+              module.exports.roomId = results[0].id;
+              console.log('\n\nsecond checkusername id:', module.exports.userId, 'room id:', module.exports.roomId);
+
+              // callback for message insertion
+              connection.connection.query(
+                'insert into messages(id_usernames, id_rooms, messageText) values(?, 1, ?)', [module.exports.userId, message], (err, results, fields) => {
+                  if (err) {
+                    console.log('insert check 1:', module.exports.userId, module.exports.roomId);
+
+                    throw err;
+                  } else {
+                    console.log('insert check 2:', module.exports.userId, module.exports.roomId);
+                    console.log(results);
+
+                  }
+                }
+              );
+
+            }
+          );
+        }
+
 
       }
     );
-
 
 
 

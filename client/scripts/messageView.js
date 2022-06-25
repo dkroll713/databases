@@ -14,7 +14,7 @@ var MessageView = {
           data-username="<%- username %>">
           <%- username %>
         </div>
-        <div><%- text %></div>
+        <div><%- messageText %></div>
       </div>
       <!--
             -->

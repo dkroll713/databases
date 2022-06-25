@@ -31,6 +31,7 @@ console.log(__dirname);
 app.use(express.static(path.join(__dirname + '/../client')));
 
 app.use(router);
+app.use(express.json());
 // If we are being run directly, run the server.
 if (!module.parent) {
   app.listen(app.get('port'));
