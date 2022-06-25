@@ -31,9 +31,10 @@ describe('Persistent Node Chat Server', () => {
   it('Should insert posted messages to the DB', (done) => {
     const username = 'Valjean';
     const message = 'In mercy\'s name, three days is all I need.';
-    const roomname = 'Hello';
+    const roomname = 'Lobby';
+    var result;
     // Create a user on the chat server database.
-    axios.post(`${API_URL}/users`, { username })
+    axios.post(`${API_URL}/users`, { username, message })
       .then(() => {
         // Post a message to the node chat server:
         return axios.post(`${API_URL}/messages`, { username, message, roomname });
@@ -43,20 +44,29 @@ describe('Persistent Node Chat Server', () => {
 
         /* TODO: You might have to change this test to get all the data from
          * your message table, since this is schema-dependent. */
-        const queryString = 'select u.username, r.room, m.messageText from messages m inner join usernames u on u.id = m.id_usernames inner join rooms r on r.id = m.id_rooms;';
-        const queryArgs = [];
+        const queryString = 'select u.username, r.room, m.messageText from messages m inner join usernames u on u.id = m.id_usernames inner join rooms r on r.id = m.id_rooms where u.username="Valjean";';
+        const queryArgs = ['Valjean'];
 
-        dbConnection.query(queryString, queryArgs, (err, results) => {
+        dbConnection.query(queryString, queryArgs, (err, results, fields) => {
           if (err) {
+            console.log('error:', error);
             throw err;
+          } else {
+            console.log('results:', results);
+            result = results;
           }
           // Should have one result:
+          console.log('test results:', results);
           expect(results.length).toEqual(1);
 
           // TODO: If you don't have a column named text, change this test.
           expect(results[0].messageText).toEqual(message);
           done();
         });
+      })
+      .then(() => {
+        console.log('result:', result);
+        expect(result.length).toEqual(1);
       })
       .catch((err) => {
         throw err;
@@ -78,7 +88,7 @@ describe('Persistent Node Chat Server', () => {
       axios.get(`${API_URL}/messages`)
         .then((response) => {
           const messageLog = response.data;
-          expect(messageLog[0].text).toEqual(message);
+          expect(messageLog[0].messageText).toEqual(message);
           expect(messageLog[0].roomname).toEqual(roomname);
           done();
         })

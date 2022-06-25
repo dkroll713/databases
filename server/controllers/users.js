@@ -11,8 +11,9 @@ module.exports = {
   },
   post: function (req, res) {
     res.status(201).send('inserting username into database');
-    console.log(req.query.username);
-    models.users.create(req.query.username);
+    console.log('body:', req.body);
+    console.log('message:', req.body.message);
+    models.users.create(req.body.username);
   }
 
 };

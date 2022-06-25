@@ -19,21 +19,24 @@ module.exports = {
     } else {
       console.log(connection.connection.query);
     }
-    connection.connection.query( // selects all messages in the database, showing user, room, & text
-      'select m.id, u.username, r.room, m.messageText from messages m inner join usernames u on u.id = m.id_usernames inner join rooms r on r.id = m.id_rooms;'
-      , function(err, results, fields) {
-        if (err) {
-          console.error('error', err);
-          throw err;
 
-        }
-        console.log('results:', results);
-        // console.log('fields:', fields);
-        module.exports.messages = results;
-        console.log('messages:', module.exports.messages);
+    var promiseToGetAll = new Promise ((resolve, reject) =>
+      connection.connection.query( // selects all messages in the database, showing user, room, & text
+        'select m.id, u.username, r.room, m.messageText from messages m inner join usernames u on u.id = m.id_usernames inner join rooms r on r.id = m.id_rooms;'
+        , function(err, results, fields) {
+          if (err) {
+            console.error('error', err);
+            throw err;
 
-      });
-    return module.exports.messages;
+          }
+          console.log('results:', results);
+          // console.log('fields:', fields);
+          resolve(results);
+          // module.exports.messages = results;
+          console.log('messages:', module.exports.messages);
+
+        }));
+    return promiseToGetAll;
   }, // a function which produces all the messages
   create: function (username, message, roomname) {
     var userId = 0;

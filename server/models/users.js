@@ -29,13 +29,22 @@ module.exports = {
     //     console.log('the next user id is:', module.exports.nextUserId);
     //   }
     // );
-
     connection.connection.query(
-      'insert into usernames(username) values(?)',
-      [username],
-      (err, results, fields) => {
-        if (err) { throw err; }
-        console.log(results);
+      'select * from usernames u where u.username=?', username, (err, results, fields) => {
+        if (err) {
+          throw err;
+        } else {
+          if (!results[0]) {
+            connection.connection.query(
+              'insert into usernames(username) values(?)',
+              [username],
+              (err, results, fields) => {
+                if (err) { throw err; }
+                console.log(results);
+              }
+            );
+          }
+        }
       }
     );
   }
